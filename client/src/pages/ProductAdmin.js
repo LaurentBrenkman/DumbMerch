@@ -3,20 +3,34 @@ import { Container, Row, Col, Table, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router';
 import ShowMoreText from 'react-show-more-text';
 import rupiahFormat from 'rupiah-format';
+import { useQuery, useMutation } from 'react-query';
 
 import NavbarAdmin from '../components/NavbarAdmin';
 import DeleteData from '../components/modal/DeleteData';
 
 import imgEmpty from '../assets/empty.svg';
 
-
-const products = []
+import { API } from '../config/api';
 
 export default function ProductAdmin() {
   let navigate = useNavigate();
 
   const title = 'Product admin';
   document.title = 'DumbMerch | ' + title;
+
+  // Variabel for delete product data
+  const [idDelete, setIdDelete] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
+  // Modal Confirm delete data
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  let { data: products, refetch } = useQuery('productsCache', async () => {
+    const response = await API.get('/products');
+    return response.data.data;
+  });
 
   const addProduct = () => {
     navigate('/add-product');
@@ -25,6 +39,34 @@ export default function ProductAdmin() {
   const handleUpdate = (id) => {
     navigate('/update-product/' + id);
   };
+
+  /// For get id product & show modal confirm delete data
+  const handleDelete = (id) => {
+    setIdDelete(id);
+    handleShow();
+  };
+
+  // Create function for handle delete product here ...
+  // If confirm is true, execute delete data
+  const deleteById = useMutation(async (id) => {
+    try {
+      await API.delete(`/product/${id}`);
+      refetch();
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  // Call function for handle close modal and execute delete data with useEffect here ...
+  useEffect(() => {
+    if (confirmDelete) {
+      // Close modal confirm delete data
+      handleClose();
+      // execute delete data by id function
+      deleteById.mutate(idDelete);
+      setConfirmDelete(null);
+    }
+  }, [confirmDelete]);
 
   return (
     <>
@@ -95,7 +137,7 @@ export default function ProductAdmin() {
                       </td>
                       <td className="align-middle">{item.qty}</td>
                       <td className="align-middle">
-                        {/* <Button
+                        <Button
                           onClick={() => {
                             handleUpdate(item.id);
                           }}
@@ -112,7 +154,7 @@ export default function ProductAdmin() {
                           style={{ width: '135px' }}
                         >
                           Delete
-                        </Button> */}
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -132,11 +174,11 @@ export default function ProductAdmin() {
           </Col>
         </Row>
       </Container>
-      {/* <DeleteData
+      <DeleteData
         setConfirmDelete={setConfirmDelete}
         show={show}
         handleClose={handleClose}
-      /> */}
+      />
     </>
   );
 }

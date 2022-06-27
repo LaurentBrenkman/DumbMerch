@@ -1,11 +1,10 @@
 {
   "development": {
-    "username": "postgres",
-    "password": "root",
-    "database": "b35_dumbmerch",
-    "host": "localhost",
-    "port": "5432",
-    "dialect": "postgres"
+    "username": "root",
+    "password": null,
+    "database": "course_express_b35",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
   },
   "test": {
     "username": "root",

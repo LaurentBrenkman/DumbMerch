@@ -1,41 +1,67 @@
-import React, { useState } from 'react'
-import { Container, Row, Col } from 'react-bootstrap'
+import React, { useState, useEffect } from 'react'
 
 import Navbar from '../components/Navbar'
-import Contact from '../components/complain/Contact'
-import Chat from '../components/complain/Chat'
 
+// import components
+import { Container, Row, Col } from 'react-bootstrap'
+import Contact from '../components/complain/Contact'
+
+// import socket.io-client 
+import {io} from 'socket.io-client'
+
+// initial variable outside socket
+let socket
 export default function Complain() {
     const [contact, setContact] = useState(null)
+    const [contacts, setContacts] = useState([])
 
     const title = "Complain"
     document.title = 'DumbMerch | ' + title
 
-    const dataContact = [
-        {
-            id: 1,
-            name: 'Admin',
-            chat: 'Yes, Is there anything I can help',
-            img: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1050&q=80'
-        },
-        {
-            id: 2,
-            name: 'Admin 2',
-            chat: 'Hello World',
-            img: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1050&q=80'
-        }
-    ]
+    useEffect(() =>{
+        socket = io('http://localhost:5000', {
+            auth: {
+                token: localStorage.getItem('token')
+            }
+        })
+        loadContact()
 
+        socket.on('connect_error', (err)=>{
+            console.error(err)
+        })
+
+        return () => {
+            socket.disconnect()
+        }
+    }, [])
+
+    const loadContact = () => {
+        // emit corresponding event to load admin contact
+        socket.emit("load admin contact")
+
+        // listen event to get admin contact
+        socket.on("admin contact", (data) => {
+
+             // manipulate data to add message property
+            const dataContact = {
+                ...data, 
+                message: "Click here to start message"
+            }
+            setContacts([dataContact])
+        })
+    }
+
+    // used for active style when click contact
+    const onClickContact = (data) => {
+        setContact(data)
+    }
     return (
         <>
             <Navbar title={title} />
             <Container fluid style={{height: '89.5vh'}}>
                 <Row>
                     <Col md={3} style={{height: '89.5vh'}} className="px-3 border-end border-dark overflow-auto">
-                        <Contact dataContact={dataContact}  setContact={setContact} contact={contact} />
-                    </Col>
-                    <Col md={9} style={{maxHeight: '89.5vh'}} className="px-0">
-                        <Chat contact={contact} />
+                        <Contact dataContact={contacts}  clickContact={onClickContact} contact={contact} />
                     </Col>
                 </Row>
             </Container>

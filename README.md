@@ -1,1 +1,0 @@
-Baca dengan seksama ya

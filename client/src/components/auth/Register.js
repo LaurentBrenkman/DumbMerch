@@ -2,12 +2,9 @@ import React, { useContext, useState } from 'react';
 import { UserContext } from '../../context/userContext';
 import { useNavigate } from 'react-router-dom';
 import { Alert } from 'react-bootstrap';
+import { useMutation } from 'react-query';
 
-// Import useMutation from react-query here ...
-import { useMutation } from 'react-query'
-
-// Get API config here ...
-import { API } from '../../config/api'
+import { API } from '../../config/api';
 
 export default function Register() {
   let navigate = useNavigate();
@@ -18,8 +15,6 @@ export default function Register() {
   const [state, dispatch] = useContext(UserContext);
 
   const [message, setMessage] = useState(null);
-
-  // Create variabel for store data with useState here ...
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -35,28 +30,44 @@ export default function Register() {
     });
   };
 
-  // Create function for handle insert data process with useMutation here ...
   const handleSubmit = useMutation(async (e) => {
     try {
       e.preventDefault();
-  
+
       // Configuration Content-type
       const config = {
         headers: {
           'Content-type': 'application/json',
         },
       };
-  
-      // Data body => Convert Object to String
+
+      // Data body
       const body = JSON.stringify(form);
-  
+
       // Insert data user to database
       const response = await API.post('/register', body, config);
-  
-      // Handling response here
-      console.log(response.data)
 
-
+      // Notification
+      if (response.data.status === 'success...') {
+        const alert = (
+          <Alert variant="success" className="py-1">
+            Success
+          </Alert>
+        );
+        setMessage(alert);
+        setForm({
+          name: '',
+          email: '',
+          password: '',
+        });
+      } else {
+        const alert = (
+          <Alert variant="danger" className="py-1">
+            Failed
+          </Alert>
+        );
+        setMessage(alert);
+      }
     } catch (error) {
       const alert = (
         <Alert variant="danger" className="py-1">

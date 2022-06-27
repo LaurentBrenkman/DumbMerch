@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import dateFormat from 'dateformat';
 import convertRupiah from 'rupiah-format';
+import { useQuery } from 'react-query';
 
 import Navbar from '../components/Navbar';
 
@@ -11,11 +12,25 @@ import { UserContext } from '../context/userContext';
 
 import imgBlank from '../assets/blank-profile.png';
 
+import { API } from '../config/api';
+
 export default function Profile() {
   const title = 'Profile';
   document.title = 'DumbMerch | ' + title;
 
   const [state] = useContext(UserContext);
+
+  // const [transactions, setTransactions] = useState([]);
+
+  let { data: profile } = useQuery('profileCache', async () => {
+    const response = await API.get('/profile');
+    return response.data.data;
+  });
+
+  let { data: transactions } = useQuery('transactionsCache', async () => {
+    const response = await API.get('/transactions');
+    return response.data.data;
+  });
 
   return (
     <>
@@ -27,17 +42,17 @@ export default function Profile() {
             <Row>
               <Col md="6">
                 <img
-                  src={profile?.image ? profile?.image : imgBlank}
+                  src={profile?.image ? profile.image : imgBlank}
                   className="img-fluid rounded"
                   alt="avatar"
                 />
               </Col>
               <Col md="6">
                 <div className="profile-header">Name</div>
-                <div className="profile-content">{state?.user?.name}</div>
+                <div className="profile-content">{state.user.name}</div>
 
                 <div className="profile-header">Email</div>
-                <div className="profile-content">{state?.user?.email}</div>
+                <div className="profile-content">{state.user.email}</div>
 
                 <div className="profile-header">Phone</div>
                 <div className="profile-content">

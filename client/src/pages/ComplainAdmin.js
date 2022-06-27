@@ -1,42 +1,67 @@
-import React, { useState, useContext } from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
+// import hook
+import React, { useEffect, useState } from 'react'
 
-import { UserContext } from '../context/userContext';
+import NavbarAdmin from '../components/NavbarAdmin'
 
-import NavbarAdmin from '../components/NavbarAdmin';
-import Contact from '../components/complain/Contact';
-import Chat from '../components/complain/Chat';
+// import components here
+import {Container, Row, Col} from 'react-bootstrap'
+import Contact from '../components/complain/Contact'
 
-import dataContact from '../fakeData/contact';
+// import socket.io-client 
+import {io} from 'socket.io-client'
 
+// initial variable outside socket
+let socket
 export default function ComplainAdmin() {
-  const [state] = useContext(UserContext);
-  const [contact, setContact] = useState(null);
+    // code here
+    const [contact, setContact] = useState(null)
+    const [contacts, setContacts] = useState([])
 
-  const title = 'Complain admin';
-  document.title = 'DumbMerch | ' + title;
+    const title = "Complain admin"
+    document.title = 'DumbMerch | ' + title
 
-  return (
-    <>
-      <NavbarAdmin title={title} />
-      <Container fluid style={{ height: '89.5vh' }}>
-        <Row>
-          <Col
-            md={3}
-            style={{ height: '89.5vh' }}
-            className="px-3 border-end border-dark overflow-auto"
-          >
-            <Contact
-              dataContact={dataContact}
-              setContact={setContact}
-              contact={contact}
-            />
-          </Col>
-          <Col md={9} style={{ maxHeight: '89.5vh' }} className="px-0">
-            <Chat contact={contact} />
-          </Col>
-        </Row>
-      </Container>
-    </>
-  );
+    useEffect(() =>{
+        socket = io('http://localhost:5000')
+        loadContact()
+
+        return () => {
+            socket.disconnect()
+        }
+    }, [])
+
+    const loadContact = () => {
+        // emit event to load admin contact
+        socket.emit("load customer contact")
+    
+        // listen event to get admin contact
+        socket.on("customer contact", (data) => {
+            // do whatever to the data sent from server
+
+            const dataContact = data.map((item) =>{
+                return {
+                    ...item,
+                    message: 'Click here to start message'
+                }
+            })
+
+            setContacts(dataContact)
+        })
+      }
+
+      const onClickContact = (data) => {
+        setContact(data)
+      }
+
+    return (
+        <>
+            <NavbarAdmin title={title} />
+            <Container fluid style={{height: '90vh'}}>
+                <Row>
+                    <Col md={3}>
+                        <Contact clickContact={onClickContact} dataContact={contacts} contact={contact}   />
+                    </Col>
+                </Row>
+            </Container>
+        </>
+    )
 }

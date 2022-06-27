@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Table, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router';
+import { useQuery, useMutation } from 'react-query';
 
 import NavbarAdmin from '../components/NavbarAdmin';
 import DeleteData from '../components/modal/DeleteData';
 
 import imgEmpty from '../assets/empty.svg';
+
+import { API } from '../config/api';
 
 export default function CategoryAdmin() {
   let navigate = useNavigate();
@@ -13,9 +16,51 @@ export default function CategoryAdmin() {
   const title = 'Category admin';
   document.title = 'DumbMerch | ' + title;
 
+    // Variabel for delete product data
+    const [idDelete, setIdDelete] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(null);
+
+  // Modal Confirm delete data
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  let { data: categories, refetch } = useQuery('categoriesCache', async () => {
+    const response = await API.get('/categories');
+    return response.data.data;
+  });
+
   const handleEdit = (id) => {
     navigate(`/update-category/${id}`);
   };
+
+    /// For get id product & show modal confirm delete data
+    const handleDelete = (id) => {
+      setIdDelete(id);
+      handleShow();
+    };
+
+  // Create function for handle delete product here ...
+  // If confirm is true, execute delete data
+  const deleteById = useMutation(async (id) => {
+    try {
+      await API.delete(`/category/${id}`);
+      refetch();
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  // Call function for handle close modal and execute delete data with useEffect here ...
+  useEffect(() => {
+    if (confirmDelete) {
+      // Close modal confirm delete data
+      handleClose();
+      // execute delete data by id function
+      deleteById.mutate(idDelete);
+      setConfirmDelete(null);
+    }
+  }, [confirmDelete]);
 
   const addCategory = () => {
     navigate('/add-category');

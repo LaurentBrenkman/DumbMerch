@@ -87,14 +87,6 @@ exports.login = async (req, res) => {
         exclude: ["createdAt", "updatedAt"],
       },
     });
-
-    if(!userExist){
-      return res.status(404).send({
-        status: "failed",
-        message: `Email: ${req.body.email} not found`,
-      });
-    }
-
     // compare password between entered from client and from database
     const isValid = await bcrypt.compare(req.body.password, userExist.password);
 

@@ -16,11 +16,7 @@ export default function Auth() {
 
   const checkAuth = () => {
     if (state.isLogin === true) {
-      if(state.user.status == 'customer'){
-        navigate('/')
-      }else{
-        navigate('/complain-admin')
-      }
+      navigate("/");
     }
   };
   checkAuth();

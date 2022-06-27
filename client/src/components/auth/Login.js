@@ -2,13 +2,9 @@ import { useContext, useState } from 'react';
 import { UserContext } from '../../context/userContext';
 import { useNavigate } from 'react-router-dom';
 import { Alert } from 'react-bootstrap';
+import { useMutation } from 'react-query';
 
-// Import useMutation from react-query here ...
-import { useMutation } from 'react-query'
-
-// Get API config here ...
-import { API } from '../../config/api'
-
+import { API } from '../../config/api';
 
 export default function Login() {
   let navigate = useNavigate();
@@ -18,11 +14,7 @@ export default function Login() {
 
   const [state, dispatch] = useContext(UserContext);
 
-  console.log(state)
-
   const [message, setMessage] = useState(null);
-
-  // Create variabel for store data with useState here ...
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -37,48 +29,53 @@ export default function Login() {
     });
   };
 
-  // Create function for handle insert data process with useMutation here ...
   const handleSubmit = useMutation(async (e) => {
     try {
       e.preventDefault();
-  
-      // Configuration Content-type
+
+      // Configuration
       const config = {
         headers: {
           'Content-type': 'application/json',
         },
       };
-  
-      // Data body => Convert Object to String
+
+      // Data body
       const body = JSON.stringify(form);
-  
-      // Insert data user to database
+
+      // Insert data for login process
       const response = await API.post('/login', body, config);
-  
-      // Handling response here
-      const userStatus = response.data.data.status
 
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: response.data.data
-      })
-      
-      if(userStatus == 'customer'){
-        navigate('/')
-      } else if(userStatus == 'admin' ){ 
-        navigate('/complain-admin')
+      // Checking process
+      if (response?.status === 200) {
+        // Send data to useContext
+        dispatch({
+          type: 'LOGIN_SUCCESS',
+          payload: response.data.data,
+        });
+
+        // Status check
+        if (response.data.data.status === 'admin') {
+          navigate('/complain-admin');
+        } else {
+          navigate('/');
+        }
+
+        const alert = (
+          <Alert variant="success" className="py-1">
+            Login success
+          </Alert>
+        );
+        setMessage(alert);
       }
-
-
-      setMessage(null);
     } catch (error) {
       const alert = (
         <Alert variant="danger" className="py-1">
-          {error.response.data.message}
+          Login failed
         </Alert>
       );
       setMessage(alert);
-      console.log(error.response.data.message);
+      console.log(error);
     }
   });
 
