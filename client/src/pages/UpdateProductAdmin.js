@@ -1,20 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Button } from 'react-bootstrap';
-import { useParams, useNavigate } from 'react-router';
-import { useQuery, useMutation } from 'react-query';
+import React, { useState, useEffect, createElement } from "react";
+import { Container, Row, Col, Button } from "react-bootstrap";
+import { useParams, useHistory } from "react-router";
 
-import NavbarAdmin from '../components/NavbarAdmin';
-import CheckBox from '../components/form/CheckBox';
+import NavbarAdmin from "../components/NavbarAdmin";
+import CheckBox from "../components/form/CheckBox";
 
-import dataProduct from '../fakeData/product';
+import dataProduct from "../fakeData/product";
 
-import { API } from '../config/api';
+// Import useQuery and useMutation
+import { useQuery, useMutation } from "react-query";
+
+// Get API config
+import { API } from "../config/api";
 
 export default function UpdateProductAdmin() {
-  const title = 'Product admin';
-  document.title = 'DumbMerch | ' + title;
+  const title = "Product admin";
+  document.title = "DumbMerch | " + title;
 
-  let navigate = useNavigate();
+  let history = useHistory();
+  let api = API();
   const { id } = useParams();
 
   const [categories, setCategories] = useState([]); //Store all category data
@@ -22,31 +26,35 @@ export default function UpdateProductAdmin() {
   const [preview, setPreview] = useState(null); //For image preview
   const [product, setProduct] = useState({}); //Store product data
   const [form, setForm] = useState({
-    image: '',
-    name: '',
-    desc: '',
-    price: '',
-    qty: '',
+    image: "",
+    name: "",
+    desc: "",
+    price: "",
+    qty: "",
   }); //Store product data
 
   // Fetching detail product data by id from database
-  useQuery('productCache', async () => {
-    const response = await API.get('/product/' + id);
-    setPreview(response.data.data.image);
+  let { productRefetch } = useQuery("productCache", async () => {
+    const config = {
+      headers: {
+        Authorization: "Basic " + localStorage.token,
+      },
+    };
+    const response = await api.get("/product/" + id, config);
     setForm({
-      ...form,
-      name: response.data.data.name,
-      desc: response.data.data.desc,
-      price: response.data.data.price,
-      qty: response.data.data.qty,
+      name: response.data.name,
+      desc: response.data.desc,
+      price: response.data.price,
+      qty: response.data.qty,
+      image: response.data.image,
     });
-    setProduct(response.data.data);
+    setProduct(response.data);
   });
 
   // Fetching category data
-  useQuery('categoriesCache', async () => {
-    const response = await API.get('/categories');
-    setCategories(response.data.data);
+  let { categoriesRefetch } = useQuery("categoriesCache", async () => {
+    const response = await api.get("/categories");
+    setCategories(response.data);
   });
 
   // For handle if category selected
@@ -54,7 +62,7 @@ export default function UpdateProductAdmin() {
     const id = e.target.value;
     const checked = e.target.checked;
 
-    if (checked) {
+    if (checked == true) {
       // Save category id if checked
       setCategoryId([...categoryId, parseInt(id)]);
     } else {
@@ -71,13 +79,12 @@ export default function UpdateProductAdmin() {
     setForm({
       ...form,
       [e.target.name]:
-        e.target.type === 'file' ? e.target.files : e.target.value,
+        e.target.type === "file" ? e.target.files : e.target.value,
     });
 
     // Create image url for preview
-    if (e.target.type === 'file') {
-      let url = URL.createObjectURL(e.target.files[0]);
-      setPreview(url);
+    if (e.target.type === "file") {
+      setPreview(e.target.files);
     }
   };
 
@@ -85,33 +92,30 @@ export default function UpdateProductAdmin() {
     try {
       e.preventDefault();
 
-      // Configuration
-      const config = {
-        headers: {
-          'Content-type': 'multipart/form-data',
-        },
-      };
-
       // Store data with FormData as object
       const formData = new FormData();
-      if (form.image) {
-        formData.set('image', form?.image[0], form?.image[0]?.name);
+      if (preview) {
+        formData.set("image", preview[0], preview[0]?.name);
       }
-      formData.set('name', form.name);
-      formData.set('desc', form.desc);
-      formData.set('price', form.price);
-      formData.set('qty', form.qty);
-      formData.set('categoryId', categoryId);
+      formData.set("name", form.name);
+      formData.set("desc", form.desc);
+      formData.set("price", form.price);
+      formData.set("qty", form.qty);
+      formData.set("categoryId", categoryId);
+
+      // Configuration
+      const config = {
+        method: "PATCH",
+        headers: {
+          Authorization: "Basic " + localStorage.token,
+        },
+        body: formData,
+      };
 
       // Insert product data
-      const response = await API.patch(
-        '/product/' + product.id,
-        formData,
-        config
-      );
-      console.log(response.data);
+      const response = await api.patch("/product/" + product.id, config);
 
-      navigate('/product-admin');
+      history.push("/product-admin");
     } catch (error) {
       console.log(error);
     }
@@ -135,16 +139,26 @@ export default function UpdateProductAdmin() {
           </Col>
           <Col xs="12">
             <form onSubmit={(e) => handleSubmit.mutate(e)}>
-              {preview && (
+              {!preview ? (
                 <div>
                   <img
-                    src={preview}
+                    src={form.image}
                     style={{
-                      maxWidth: '150px',
-                      maxHeight: '150px',
-                      objectFit: 'cover',
+                      maxWidth: "150px",
+                      maxHeight: "150px",
+                      objectFit: "cover",
                     }}
-                    alt="preview"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <img
+                    src={URL.createObjectURL(preview[0])}
+                    style={{
+                      maxWidth: "150px",
+                      maxHeight: "150px",
+                      objectFit: "cover",
+                    }}
                   />
                 </div>
               )}
@@ -163,23 +177,23 @@ export default function UpdateProductAdmin() {
                 placeholder="Product Name"
                 name="name"
                 onChange={handleChange}
-                value={form?.name}
+                value={form.name}
                 className="input-edit-category mt-4"
               />
               <textarea
                 placeholder="Product Desc"
                 name="desc"
                 onChange={handleChange}
-                value={form?.desc}
+                value={form.desc}
                 className="input-edit-category mt-4"
-                style={{ height: '130px' }}
+                style={{ height: "130px" }}
               ></textarea>
               <input
                 type="number"
                 placeholder="Price (Rp.)"
                 name="price"
                 onChange={handleChange}
-                value={form?.price}
+                value={form.price}
                 className="input-edit-category mt-4"
               />
               <input
@@ -187,26 +201,26 @@ export default function UpdateProductAdmin() {
                 placeholder="Stock"
                 name="qty"
                 onChange={handleChange}
-                value={form?.qty}
+                value={form.qty}
                 className="input-edit-category mt-4"
               />
 
               <div className="card-form-input mt-4 px-2 py-1 pb-2">
                 <div
                   className="text-secondary mb-1"
-                  style={{ fontSize: '15px' }}
+                  style={{ fontSize: "15px" }}
                 >
                   Category
                 </div>
                 {product &&
-                  categories?.map((item, index) => (
-                    <label key={index} className="checkbox-inline me-4">
+                  categories.map((item) => (
+                    <label class="checkbox-inline me-4">
                       <CheckBox
                         categoryId={categoryId}
-                        value={item?.id}
+                        value={item.id}
                         handleChangeCategoryId={handleChangeCategoryId}
                       />
-                      <span className="ms-2">{item?.name}</span>
+                      <span className="ms-2">{item.name}</span>
                     </label>
                   ))}
               </div>

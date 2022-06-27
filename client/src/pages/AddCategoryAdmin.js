@@ -1,22 +1,27 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router';
-import { useMutation } from 'react-query';
+import React, { useState } from "react";
+import { Container, Row, Col, Button } from "react-bootstrap";
+import { useHistory } from "react-router";
 
-import NavbarAdmin from '../components/NavbarAdmin';
+import NavbarAdmin from "../components/NavbarAdmin";
 
-import dataCategory from '../fakeData/category';
+import dataCategory from "../fakeData/category";
 
-import { API } from '../config/api';
+// Import useMutation
+import { useMutation } from "react-query";
+
+// Import API config
+import { API } from "../config/api";
 
 export default function AddCategoryAdmin() {
   console.clear();
 
-  let navigate = useNavigate();
-  const [category, setCategory] = useState('');
+  const title = "Category admin";
+  document.title = "DumbMerch | " + title;
 
-  const title = 'Category admin';
-  document.title = 'DumbMerch | ' + title;
+  let history = useHistory();
+  let api = API();
+
+  const [category, setCategory] = useState("");
 
   const handleChange = (e) => {
     setCategory(e.target.value);
@@ -26,20 +31,25 @@ export default function AddCategoryAdmin() {
     try {
       e.preventDefault();
 
-      // Configuration
-      const config = {
-        headers: {
-          'Content-type': 'application/json',
-        },
-      };
-
       // Data body
       const body = JSON.stringify({ name: category });
 
-      // Insert category data
-      const response = await API.post('/category', body, config);
+      // Configuration
+      const config = {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body,
+      };
+      console.log(config);
 
-      navigate('/category-admin');
+      // Insert category data
+      const response = await api.post("/category", config);
+
+      console.log(response);
+
+      history.push("/category-admin");
     } catch (error) {
       console.log(error);
     }

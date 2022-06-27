@@ -1,23 +1,27 @@
-import { useContext, useState } from 'react';
-import { UserContext } from '../../context/userContext';
-import { useNavigate } from 'react-router-dom';
-import { Alert } from 'react-bootstrap';
-import { useMutation } from 'react-query';
+import { useContext, useState } from "react";
+import { UserContext } from "../../context/userContext";
+import { useHistory } from "react-router-dom";
+import { Alert } from "react-bootstrap";
 
-import { API } from '../../config/api';
+// Import useMutation
+import { useMutation } from "react-query";
+
+// Import API config
+import { API } from "../../config/api";
 
 export default function Login() {
-  let navigate = useNavigate();
+  const title = "Login";
+  document.title = "DumbMerch | " + title;
 
-  const title = 'Login';
-  document.title = 'DumbMerch | ' + title;
+  let history = useHistory();
+  let api = API();
 
   const [state, dispatch] = useContext(UserContext);
 
   const [message, setMessage] = useState(null);
   const [form, setForm] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const { email, password } = form;
@@ -33,37 +37,48 @@ export default function Login() {
     try {
       e.preventDefault();
 
-      // Configuration
-      const config = {
-        headers: {
-          'Content-type': 'application/json',
-        },
-      };
-
       // Data body
       const body = JSON.stringify(form);
 
+      // Configuration
+      const config = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: body,
+      };
+
       // Insert data for login process
-      const response = await API.post('/login', body, config);
+      const response = await api.post("/login", config);
+
+      console.log(response);
 
       // Checking process
-      if (response?.status === 200) {
+      if (response.status == "success") {
         // Send data to useContext
         dispatch({
-          type: 'LOGIN_SUCCESS',
-          payload: response.data.data,
+          type: "LOGIN_SUCCESS",
+          payload: response.data,
         });
 
         // Status check
-        if (response.data.data.status === 'admin') {
-          navigate('/complain-admin');
+        if (response.data.status == "admin") {
+          history.push("/complain-admin");
         } else {
-          navigate('/');
+          history.push("/");
         }
 
         const alert = (
           <Alert variant="success" className="py-1">
             Login success
+          </Alert>
+        );
+        setMessage(alert);
+      } else {
+        const alert = (
+          <Alert variant="danger" className="py-1">
+            Failed success
           </Alert>
         );
         setMessage(alert);
@@ -83,7 +98,7 @@ export default function Login() {
     <div className="d-flex justify-content-center">
       <div className="card-auth p-4">
         <div
-          style={{ fontSize: '36px', lineHeight: '49px', fontWeight: '700' }}
+          style={{ fontSize: "36px", lineHeight: "49px", fontWeight: "700" }}
           className="mb-3"
         >
           Login

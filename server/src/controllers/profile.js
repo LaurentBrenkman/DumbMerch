@@ -1,4 +1,4 @@
-const { profile } = require('../../models');
+const { profile } = require("../../models");
 
 exports.getProfile = async (req, res) => {
   try {
@@ -9,7 +9,7 @@ exports.getProfile = async (req, res) => {
         idUser,
       },
       attributes: {
-        exclude: ['createdAt', 'updatedAt', 'idUser'],
+        exclude: ["createdAt", "updatedAt", "idUser"],
       },
     });
 
@@ -17,18 +17,18 @@ exports.getProfile = async (req, res) => {
 
     data = {
       ...data,
-      image: data ? process.env.PATH_FILE + data.image : null,
+      image: data.image ? process.env.PATH_FILE + data.image : null,
     };
 
     res.send({
-      status: 'success...',
+      status: "success...",
       data,
     });
   } catch (error) {
     console.log(error);
     res.send({
-      status: 'failed',
-      message: 'Server Error',
+      status: "failed",
+      message: "Server Error",
     });
   }
 };

@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Table, Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router';
-import ShowMoreText from 'react-show-more-text';
-import rupiahFormat from 'rupiah-format';
-import { useQuery, useMutation } from 'react-query';
+import React, { useState, useEffect } from "react";
+import { Container, Row, Col, Table, Button } from "react-bootstrap";
+import { useHistory } from "react-router";
+import ShowMoreText from "react-show-more-text";
+import rupiahFormat from "rupiah-format";
 
-import NavbarAdmin from '../components/NavbarAdmin';
-import DeleteData from '../components/modal/DeleteData';
+import NavbarAdmin from "../components/NavbarAdmin";
+import DeleteData from "../components/modal/DeleteData";
 
-import imgEmpty from '../assets/empty.svg';
+import imgEmpty from "../assets/empty.svg";
 
-import { API } from '../config/api';
+import dataProduct from "../fakeData/product";
+
+// Import useQuery and useMutation
+import { useQuery, useMutation } from "react-query";
+
+// API config
+import { API } from "../config/api";
 
 export default function ProductAdmin() {
-  let navigate = useNavigate();
-
-  const title = 'Product admin';
-  document.title = 'DumbMerch | ' + title;
+  let history = useHistory();
+  let api = API();
 
   // Variabel for delete product data
   const [idDelete, setIdDelete] = useState(null);
@@ -27,37 +30,51 @@ export default function ProductAdmin() {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  let { data: products, refetch } = useQuery('productsCache', async () => {
-    const response = await API.get('/products');
-    return response.data.data;
+  const title = "Product admin";
+  document.title = "DumbMerch | " + title;
+
+  // Fetching product data from database
+  let { data: products, refetch } = useQuery("productsCache", async () => {
+    const config = {
+      method: "GET",
+      headers: {
+        Authorization: "Basic " + localStorage.token,
+      },
+    };
+    const response = await api.get("/products", config);
+    return response.data;
   });
 
   const addProduct = () => {
-    navigate('/add-product');
+    history.push("/add-product");
   };
 
-  const handleUpdate = (id) => {
-    navigate('/update-product/' + id);
+  const handleEdit = (id) => {
+    history.push("/edit-product/" + id);
   };
 
-  /// For get id product & show modal confirm delete data
+  // For get id product & show modal confirm delete data
   const handleDelete = (id) => {
     setIdDelete(id);
     handleShow();
   };
 
-  // Create function for handle delete product here ...
   // If confirm is true, execute delete data
   const deleteById = useMutation(async (id) => {
     try {
-      await API.delete(`/product/${id}`);
+      const config = {
+        method: "DELETE",
+        headers: {
+          Authorization: "Basic " + localStorage.token,
+        },
+      };
+      await api.delete(`/product/${id}`, config);
       refetch();
     } catch (error) {
       console.log(error);
     }
   });
 
-  // Call function for handle close modal and execute delete data with useEffect here ...
   useEffect(() => {
     if (confirmDelete) {
       // Close modal confirm delete data
@@ -81,13 +98,13 @@ export default function ProductAdmin() {
             <Button
               onClick={addProduct}
               className="btn-dark"
-              style={{ width: '100px' }}
+              style={{ width: "100px" }}
             >
               Add
             </Button>
           </Col>
           <Col xs="12">
-            {products?.length !== 0 ? (
+            {products?.length != 0 ? (
               <Table striped hover size="lg" variant="dark">
                 <thead>
                   <tr>
@@ -104,17 +121,16 @@ export default function ProductAdmin() {
                 </thead>
                 <tbody>
                   {products?.map((item, index) => (
-                    <tr key={index}>
+                    <tr>
                       <td className="align-middle text-center">{index + 1}</td>
                       <td className="align-middle">
                         <img
                           src={item.image}
                           style={{
-                            width: '80px',
-                            height: '80px',
-                            objectFit: 'cover',
+                            width: "80px",
+                            height: "80px",
+                            objectFit: "cover",
                           }}
-                          alt={item.name}
                         />
                       </td>
                       <td className="align-middle">{item.name}</td>
@@ -139,10 +155,10 @@ export default function ProductAdmin() {
                       <td className="align-middle">
                         <Button
                           onClick={() => {
-                            handleUpdate(item.id);
+                            handleEdit(item.id);
                           }}
                           className="btn-sm btn-success me-2"
-                          style={{ width: '135px' }}
+                          style={{ width: "135px" }}
                         >
                           Edit
                         </Button>
@@ -151,7 +167,7 @@ export default function ProductAdmin() {
                             handleDelete(item.id);
                           }}
                           className="btn-sm btn-danger"
-                          style={{ width: '135px' }}
+                          style={{ width: "135px" }}
                         >
                           Delete
                         </Button>
@@ -165,8 +181,7 @@ export default function ProductAdmin() {
                 <img
                   src={imgEmpty}
                   className="img-fluid"
-                  style={{ width: '40%' }}
-                  alt="empty"
+                  style={{ width: "40%" }}
                 />
                 <div className="mt-3">No data product</div>
               </div>

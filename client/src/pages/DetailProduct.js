@@ -1,45 +1,63 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Row, Col } from 'react-bootstrap';
-import convertRupiah from 'rupiah-format';
-import { useQuery, useMutation } from 'react-query';
+import { useEffect, useState } from "react";
+import { useParams, useHistory } from "react-router-dom";
+import { Container, Row, Col } from "react-bootstrap";
+import convertRupiah from "rupiah-format";
 
-import Navbar from '../components/Navbar';
+import Navbar from "../components/Navbar";
 
-import dataProduct from '../fakeData/product';
+import dataProduct from "../fakeData/product";
 
-import { API } from '../config/api';
+// Import useQuery and useMutation
+import { useQuery, useMutation } from "react-query";
+
+// API config
+import { API } from "../config/api";
 
 export default function DetailProduct() {
-  let navigate = useNavigate();
+  let history = useHistory();
   let { id } = useParams();
+  let api = API();
 
-  let { data: product } = useQuery('productCache', async () => {
-    const response = await API.get('/product/' + id);
-    return response.data.data;
+  // Fetching product data from database
+  let { data: product, refetch } = useQuery("Cache", async () => {
+    const config = {
+      method: "GET",
+      headers: {
+        Authorization: "Basic " + localStorage.token,
+      },
+    };
+    const response = await api.get("/product/" + id, config);
+    return response.data;
   });
 
-  const handleBuy = useMutation(async (e) => {
+  const handleBuy = useMutation(async () => {
     try {
-      e.preventDefault();
-
-      const config = {
-        headers: {
-          'Content-type': 'application/json',
-        },
-      };
-
+      // Get data from product
       const data = {
         idProduct: product.id,
         idSeller: product.user.id,
         price: product.price,
       };
 
+      console.log(data);
+
+      // Data body
       const body = JSON.stringify(data);
 
-      await API.post('/transaction', body, config);
+      // Configuration
+      const config = {
+        method: "POST",
+        headers: {
+          Authorization: "Basic " + localStorage.token,
+          "Content-type": "application/json",
+        },
+        body,
+      };
 
-      navigate('/profile');
+      // Insert transaction data
+      await api.post("/transaction", config);
+
+      history.push("/profile");
     } catch (error) {
       console.log(error);
     }
@@ -65,7 +83,7 @@ export default function DetailProduct() {
             </div>
             <div className="d-grid gap-2 mt-5">
               <button
-                onClick={(e) => handleBuy.mutate(e)}
+                onClick={() => handleBuy.mutate()}
                 className="btn btn-buy"
               >
                 Buy

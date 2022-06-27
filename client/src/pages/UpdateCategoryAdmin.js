@@ -1,23 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Button } from 'react-bootstrap';
-import { useParams, useNavigate } from 'react-router';
-import { useQuery, useMutation } from 'react-query';
+import React, { useState, useEffect } from "react";
+import { Container, Row, Col, Button } from "react-bootstrap";
+import { useParams, useHistory } from "react-router";
 
-import NavbarAdmin from '../components/NavbarAdmin';
+import NavbarAdmin from "../components/NavbarAdmin";
 
-import { API } from '../config/api';
+import dataCategory from "../fakeData/category";
+
+// Import useQuery and useMutation
+import { useQuery, useMutation } from "react-query";
+
+// Get API config
+import { API } from "../config/api";
 
 export default function UpdateCategoryAdmin() {
-  const title = 'Category admin';
-  document.title = 'DumbMerch | ' + title;
+  const title = "Category admin";
+  document.title = "DumbMerch | " + title;
 
-  let navigate = useNavigate();
+  let history = useHistory();
+  let api = API();
   const { id } = useParams();
-  const [category, setCategory] = useState({ name: '' });
 
-  useQuery('categoryCache', async () => {
-    const response = await API.get('/category/' + id);
-    setCategory({ name: response.data.data.name });
+  const [category, setCategory] = useState({ name: "" });
+
+  // Fetching category data by id from database
+  let { refetch } = useQuery("categoryCache", async () => {
+    const response = await api.get("/category/" + id);
+    setCategory({ name: response.data.name });
   });
 
   const handleChange = (e) => {
@@ -31,17 +39,22 @@ export default function UpdateCategoryAdmin() {
     try {
       e.preventDefault();
 
-      const config = {
-        headers: {
-          'Content-type': 'application/json',
-        },
-      };
-
+      // Data body
       const body = JSON.stringify(category);
 
-      const response = await API.patch('/category/' + id, body, config);
+      // Configuration
+      const config = {
+        method: "PATCH",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body,
+      };
 
-      navigate('/category-admin');
+      // Insert category data
+      const response = await api.patch("/category/" + id, config);
+
+      history.push("/category-admin");
     } catch (error) {
       console.log(error);
     }
