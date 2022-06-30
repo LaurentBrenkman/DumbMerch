@@ -28,12 +28,13 @@ const {
   getCategory,
   deleteCategory,
 } = require("../controllers/category");
-const { getProfile } = require("../controllers/profile");
+const { getProfile , updateProfile, getProfiles} = require("../controllers/profile");
 const { register, login, checkAuth } = require("../controllers/auth");
 
 // Middleware
 const { auth } = require("../middlewares/auth");
 const { uploadFile } = require("../middlewares/uploadFile");
+
 
 // Route
 router.post("/user", addUsers);
@@ -42,7 +43,9 @@ router.get("/user/:id", getUser);
 router.delete("/user/:id", updateUser);
 router.delete("/user/:id", deleteUser);
 
-router.get("/profile", auth, getProfile);
+router.get("/profiles", auth, getProfiles);
+router.get("/profile/:id", auth, getProfile);
+router.patch("/profile/:id", auth, uploadFile("image"), updateProfile)
 
 router.get("/products", auth, getProducts);
 router.get("/product/:id", auth, getProduct);

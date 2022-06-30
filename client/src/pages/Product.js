@@ -1,38 +1,29 @@
-import { useContext, useState, useEffect } from "react";
-import { useHistory } from "react-router-dom";
-import Masonry from "react-masonry-css";
-import { Container, Row, Col } from "react-bootstrap";
+import { useContext, useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+import Masonry from 'react-masonry-css';
+import { Container, Row, Col } from 'react-bootstrap';
 
-import { UserContext } from "../context/userContext";
+import { UserContext } from '../context/userContext';
+import { useQuery } from 'react-query';
 
-import Navbar from "../components/Navbar";
-import ProductCard from "../components/card/ProductCard";
+import Navbar from '../components/Navbar';
+import ProductCard from '../components/card/ProductCard';
 
-import imgEmpty from "../assets/empty.svg";
-
-// Import useQuery
-import { useQuery } from "react-query";
+import imgEmpty from '../assets/empty.svg';
 
 // API config
-import { API } from "../config/api";
+import { API } from '../config/api';
 
 export default function Product() {
-  let api = API();
+  const title = 'Shop';
+  document.title = 'DumbMerch | ' + title;
 
-  const title = "Shop";
-  document.title = "DumbMerch | " + title;
-
-  // Fetching product data from database
-  let { data: products, refetch } = useQuery("productsCache", async () => {
-    const config = {
-      method: "GET",
-      headers: {
-        Authorization: "Basic " + localStorage.token,
-      },
-    };
-    const response = await api.get("/products", config);
-    return response.data;
+  let { data: products } = useQuery('productsCache', async () => {
+    const response = await API.get('/products');
+    return response.data.data;
   });
+
+  console.log(products);
 
   const breakpointColumnsObj = {
     default: 6,
@@ -51,14 +42,14 @@ export default function Product() {
           </Col>
         </Row>
         <Row className="my-4">
-          {products?.length != 0 ? (
+          {products?.length !== 0 ? (
             <Masonry
               breakpointCols={breakpointColumnsObj}
               className="my-masonry-grid"
               columnClassName="my-masonry-grid_column"
             >
               {products?.map((item, index) => (
-                <ProductCard item={item} index={index} />
+                <ProductCard item={item} key={index} />
               ))}
             </Masonry>
           ) : (
@@ -67,7 +58,8 @@ export default function Product() {
                 <img
                   src={imgEmpty}
                   className="img-fluid"
-                  style={{ width: "40%" }}
+                  style={{ width: '40%' }}
+                  alt="empty"
                 />
                 <div className="mt-3">No data product</div>
               </div>

@@ -1,5 +1,5 @@
 // import model
-const { user } = require("../../models");
+const { profile, user } = require("../../models");
 
 // import joi validation
 const Joi = require("joi");
@@ -40,15 +40,27 @@ exports.register = async (req, res) => {
       status: "customer",
     });
 
+    // menambahkan profile secara otomatis pada saat register
+    const addProfile = await profile.create({
+      image: '',
+      phone:'',
+      gender: '',
+      address: '',
+      idUser: newUser.id // mengambil id user yang didaftarkan agar secara otomatis menambahkan profile user pada saat didaftarkan
+    })
+
+    console.log(addProfile)
+
     // generate token
     const token = jwt.sign({ id: user.id }, process.env.TOKEN_KEY);
 
     res.status(200).send({
-      status: "success",
+      status: "success...",
       data: {
         name: newUser.name,
         email: newUser.email,
         token,
+        addProfile
       },
     });
   } catch (error) {
@@ -102,7 +114,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign({ id: userExist.id }, process.env.TOKEN_KEY);
 
     res.status(200).send({
-      status: "success",
+      status: "success...",
       data: {
         id: userExist.id,
         name: userExist.name,
@@ -140,7 +152,7 @@ exports.checkAuth = async (req, res) => {
     }
 
     res.send({
-      status: "success",
+      status: "success...",
       data: {
         user: {
           id: dataUser.id,

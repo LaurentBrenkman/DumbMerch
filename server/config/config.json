@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": null,
-    "database": "course_express_b35",
+    "database": "database_backend_dumbmerch",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },

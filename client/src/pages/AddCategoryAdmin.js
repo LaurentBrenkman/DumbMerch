@@ -1,27 +1,22 @@
-import React, { useState } from "react";
-import { Container, Row, Col, Button } from "react-bootstrap";
-import { useHistory } from "react-router";
+import React, { useState } from 'react';
+import { Container, Row, Col, Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router';
+import { useMutation } from 'react-query';
 
-import NavbarAdmin from "../components/NavbarAdmin";
+import NavbarAdmin from '../components/NavbarAdmin';
 
-import dataCategory from "../fakeData/category";
+import dataCategory from '../fakeData/category';
 
-// Import useMutation
-import { useMutation } from "react-query";
-
-// Import API config
-import { API } from "../config/api";
+import { API } from '../config/api';
 
 export default function AddCategoryAdmin() {
   console.clear();
 
-  const title = "Category admin";
-  document.title = "DumbMerch | " + title;
+  let navigate = useNavigate();
+  const [category, setCategory] = useState('');
 
-  let history = useHistory();
-  let api = API();
-
-  const [category, setCategory] = useState("");
+  const title = 'Category admin';
+  document.title = 'DumbMerch | ' + title;
 
   const handleChange = (e) => {
     setCategory(e.target.value);
@@ -31,25 +26,20 @@ export default function AddCategoryAdmin() {
     try {
       e.preventDefault();
 
+      // Configuration
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+        },
+      };
+
       // Data body
       const body = JSON.stringify({ name: category });
 
-      // Configuration
-      const config = {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body,
-      };
-      console.log(config);
-
       // Insert category data
-      const response = await api.post("/category", config);
+      const response = await API.post('/category', body, config);
 
-      console.log(response);
-
-      history.push("/category-admin");
+      navigate('/category-admin');
     } catch (error) {
       console.log(error);
     }

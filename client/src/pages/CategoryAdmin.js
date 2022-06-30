@@ -1,67 +1,57 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Table, Button } from "react-bootstrap";
-import { useHistory } from "react-router";
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Table, Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router';
+import { useQuery, useMutation } from 'react-query';
 
-import NavbarAdmin from "../components/NavbarAdmin";
-import DeleteData from "../components/modal/DeleteData";
+import NavbarAdmin from '../components/NavbarAdmin';
+import DeleteData from '../components/modal/DeleteData';
 
-import dataCategory from "../fakeData/category";
+import imgEmpty from '../assets/empty.svg';
 
-import imgEmpty from "../assets/empty.svg";
-
-// Import useQuery and useMutation
-import { useQuery, useMutation } from "react-query";
-
-// Get API config
-import { API } from "../config/api";
+import { API } from '../config/api';
 
 export default function CategoryAdmin() {
-  const title = "Category admin";
-  document.title = "DumbMerch | " + title;
+  let navigate = useNavigate();
 
-  let history = useHistory();
-  let api = API();
+  const title = 'Category admin';
+  document.title = 'DumbMerch | ' + title;
 
-  // Variabel for delete category data
+  // Create variabel for id product and confirm delete data with useState here ...
   const [idDelete, setIdDelete] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
+  // Create init useState & function for handle show-hide modal confirm here ...
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  // Fetching categories data from database
-  let { data: categories, refetch } = useQuery("categoriesCache", async () => {
-    const response = await api.get("/categories");
-    return response.data;
+  let { data: categories, refetch } = useQuery('categoriesCache', async () => {
+    const response = await API.get('/categories');
+    return response.data.data;
   });
 
   const handleEdit = (id) => {
-    history.push(`edit-category/${id}`);
+    navigate(`/update-category/${id}`);
   };
 
-  // For get id category & show modal confirm delete data
+  // Create function handle get id product & show modal confirm delete data here ...
   const handleDelete = (id) => {
     setIdDelete(id);
     handleShow();
   };
 
+  // Create function for handle delete product here ...
   // If confirm is true, execute delete data
   const deleteById = useMutation(async (id) => {
     try {
-      const config = {
-        method: "DELETE",
-        headers: {
-          Authorization: "Basic " + localStorage.token,
-        },
-      };
-      await api.delete(`/category/${id}`, config);
+      await API.delete(`/category/${id}`);
       refetch();
     } catch (error) {
       console.log(error);
     }
   });
 
+  // Call function for handle close modal and execute delete data with useEffect here ...
   useEffect(() => {
     if (confirmDelete) {
       // Close modal confirm delete data
@@ -73,7 +63,7 @@ export default function CategoryAdmin() {
   }, [confirmDelete]);
 
   const addCategory = () => {
-    history.push("/add-category");
+    navigate('/add-category');
   };
 
   return (
@@ -89,13 +79,13 @@ export default function CategoryAdmin() {
             <Button
               onClick={addCategory}
               className="btn-dark"
-              style={{ width: "100px" }}
+              style={{ width: '100px' }}
             >
               Add
             </Button>
           </Col>
           <Col xs="12">
-            {categories?.length != 0 ? (
+            {categories?.length !== 0 ? (
               <Table striped hover size="lg" variant="dark">
                 <thead>
                   <tr>
@@ -106,7 +96,7 @@ export default function CategoryAdmin() {
                 </thead>
                 <tbody>
                   {categories?.map((item, index) => (
-                    <tr>
+                    <tr key={index}>
                       <td width="10%" className="align-middle">
                         {index + 1}
                       </td>
@@ -119,7 +109,7 @@ export default function CategoryAdmin() {
                             handleEdit(item.id);
                           }}
                           className="btn-sm btn-success me-2"
-                          style={{ width: "135px" }}
+                          style={{ width: '135px' }}
                         >
                           Edit
                         </Button>
@@ -128,7 +118,7 @@ export default function CategoryAdmin() {
                             handleDelete(item.id);
                           }}
                           className="btn-sm btn-danger"
-                          style={{ width: "135px" }}
+                          style={{ width: '135px' }}
                         >
                           Delete
                         </Button>
@@ -142,7 +132,8 @@ export default function CategoryAdmin() {
                 <img
                   src={imgEmpty}
                   className="img-fluid"
-                  style={{ width: "40%" }}
+                  style={{ width: '40%' }}
+                  alt="empty"
                 />
                 <div className="mt-3">No data category</div>
               </div>
